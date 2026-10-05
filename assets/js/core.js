@@ -34,7 +34,8 @@
     { key: "stock", name: "Stock / Food", icon: "utensils", actions: ["view", "create", "edit", "delete"] },
     { key: "reports", name: "Reports", icon: "chart", actions: ["view", "print"] },
     { key: "settings", name: "Settings (Printer)", icon: "printer", actions: ["view", "create", "edit", "delete", "print"] },
-    { key: "users", name: "Users & Roles", icon: "shield", actions: ["view", "create", "edit", "delete"] },
+    { key: "users", name: "Users", icon: "users", actions: ["view", "create", "edit", "delete"] },
+    { key: "roles", name: "Roles & Permissions", icon: "shield", actions: ["view", "create", "edit", "delete"] },
   ];
 
   function permSet(spec) {
@@ -80,7 +81,7 @@
       { id: "r-waiter", name: "Waiter", description: "Takes orders and creates bills. Cannot cancel bills or see reports." },
     ];
     const perms = {
-      "r-admin": permSet({ dashboard: "v", billing: "vcp", bills: "vdp", customers: "vced", stock: "vced", reports: "vp", settings: "vcedp", users: "vced" }),
+      "r-admin": permSet({ dashboard: "v", billing: "vcp", bills: "vdp", customers: "vced", stock: "vced", reports: "vp", settings: "vcedp", users: "vced", roles: "vced" }),
       "r-manager": permSet({ dashboard: "v", billing: "vcp", bills: "vdp", customers: "vced", stock: "vced", reports: "vp", settings: "vcedp" }),
       "r-cashier": permSet({ dashboard: "v", billing: "vcp", bills: "vp", customers: "vce", stock: "v", settings: "vp" }),
       "r-waiter": permSet({ dashboard: "v", billing: "vc", bills: "v", customers: "vc" }),
@@ -695,6 +696,7 @@
     }
     // menu: hide modules this role can't open
     $$("[data-module]").forEach((el) => { el.hidden = !can(el.dataset.module); });
+    $$("[data-module-any]").forEach((el) => { el.hidden = !el.dataset.moduleAny.split(",").some((m) => can(m)); });
     // buttons that need a permission: data-perm="module:action"
     $$("[data-perm]").forEach((el) => {
       const [m, a] = el.dataset.perm.split(":");
