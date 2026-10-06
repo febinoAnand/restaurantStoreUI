@@ -1,14 +1,22 @@
-/* Login page */
+/* Login page (opened after choosing mobile or web view) */
 (function () {
   "use strict";
-  const { $, login, currentUser, fieldError, clearErrors } = SR;
+  const { $, login, logout, fieldError, clearErrors, getView, goHome } = SR;
 
-  if (currentUser()) { location.replace("select-view.html"); return; }
+  // the view is chosen first; the login form always shows (any old session is ended)
+  if (!getView()) { location.replace("index.html"); return; }
+  logout();
 
   const form = $("#login-form");
   const user = $("#username");
   const pass = $("#password");
   const errorBox = $("#login-error");
+
+  // the page takes the chosen view's layout, and shows a link back to change it
+  const mobile = getView() === "mobile";
+  document.body.classList.toggle("m-view", mobile);
+  $("#view-chip span").textContent = mobile ? "Mobile view" : "Web view";
+  $("#view-chip use").setAttribute("href", mobile ? "#i-phone" : "#i-monitor");
 
   $("#pass-toggle").addEventListener("click", () => {
     const show = pass.type === "password";
@@ -33,7 +41,7 @@
       pass.focus();
       return;
     }
-    location.href = "select-view.html";
+    goHome();
   });
 
   user.focus();

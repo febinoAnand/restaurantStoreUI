@@ -8,6 +8,7 @@
 
   const DATA_KEY = "spiceRoute.data.v1";
   const SESSION_KEY = "spiceRoute.session";
+  const VIEW_KEY = "spiceRoute.view";
   const LOW_STOCK = 10;
 
   /* ---------- storage (safe: works even when storage is blocked) ---------- */
@@ -214,6 +215,13 @@
     return { user: u };
   }
   function logout() { storage.remove(SESSION_KEY); }
+
+  /* ---------- chosen view: "mobile" or "web" (asked before login) ---------- */
+  function getView() {
+    const v = storage.get(VIEW_KEY);
+    return v === "mobile" || v === "web" ? v : null;
+  }
+  function setView(v) { storage.set(VIEW_KEY, v === "mobile" ? "mobile" : "web"); }
   function roleOf(user) { return db.roles.find((r) => r.id === (user && user.roleId)); }
   function can(module, action = "view", user = currentUser()) {
     if (!user) return false;
@@ -681,12 +689,14 @@
 
   function goHome() {
     const first = MODULES.find((m) => can(m.key));
-    location.href = root + "web/" + (first ? first.key : "dashboard") + ".html";
+    location.href = root + (getView() || "web") + "/" + (first ? first.key : "dashboard") + ".html";
   }
 
   function initShell() {
+    // opening a mobile/ or web/ page makes that the remembered view
+    if (document.body.dataset.view) setView(document.body.dataset.view);
     const user = currentUser();
-    if (!user) { location.replace(root + "index.html"); return false; }
+    if (!user) { location.replace(root + "login.html"); return false; }
     const role = roleOf(user);
 
     if ($("#user-name")) {
@@ -705,8 +715,10 @@
     $$("[data-logout]").forEach((a) => a.addEventListener("click", (e) => {
       e.preventDefault();
       logout();
-      location.href = root + "index.html";
+      location.href = root + "login.html";
     }));
+    // "switch to web/mobile view" links keep the same page
+    $$("[data-switch-view]").forEach((a) => a.addEventListener("click", () => setView(a.dataset.switchView)));
 
     // topbar search: filters this page's list if it has one, otherwise searches bills
     const gs = $("#global-search");
@@ -737,7 +749,7 @@
     MODULES, ACTIONS, LOW_STOCK,
     $, $$, esc, uid, money, num, fmtDate, fmtTime, fmtDateTime, isoDay, sameDay, initials, fmtMobile, icon,
     lastLoginText, DAYS, MONTHS,
-    currentUser, login, logout, roleOf, can, goHome, initShell,
+    currentUser, login, logout, roleOf, can, goHome, initShell, getView, setView,
     toast, openModal, closeModal, confirmDialog, noticeDialog, fieldError, clearErrors, validMobile,
     labelRows, renderRows, paginate, renderPager, createTable,
     receiptHTML, printHTML, printBill, testPrint, downloadCSV,
